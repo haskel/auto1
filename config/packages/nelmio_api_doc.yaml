@@ -1,0 +1,11 @@
+nelmio_api_doc:
+    documentation:
+        info:
+            title: 'Vacancies REST Service'
+            description: ''
+            version: 1.0.0
+    areas:
+        path_patterns:
+            - ^/vacancies.*
+            - ^/matching.*
+            - ^/open-api/doc

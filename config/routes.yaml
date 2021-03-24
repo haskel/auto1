@@ -1,0 +1,13 @@
+app.swagger_ui:
+  path: /open-api/swagger
+  methods: GET
+  defaults: { _controller: nelmio_api_doc.controller.swagger_ui }
+
+app.swagger:
+  path: /open-api/doc
+  methods: GET
+  defaults: { _controller: nelmio_api_doc.controller.swagger }
+
+app.monitor:
+  resource: "@LiipMonitorBundle/Resources/config/routing.xml"
+  prefix: /monitor/health

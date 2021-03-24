@@ -1,0 +1,40 @@
+version: '3.9'
+
+services:
+  php:
+    container_name: php_prod
+    build:
+#      context: ./environment/php/prod
+      context: ./
+      dockerfile: environment/php/prod/Dockerfile
+    environment:
+      APP_ENV: "prod"
+      TIMEZONE: ${TIMEZONE}
+    volumes:
+      - .:/var/www/app
+    networks:
+      - app-docker-network
+
+  nginx:
+    build: ./environment/nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - php
+    volumes:
+      - ./var/log/nginx:/var/log/nginx:cached
+      - ./public:/var/www/app/public
+    networks:
+      - app-docker-network
+#
+networks:
+  app-docker-network:
+
+
+#networks:
+#  default:
+#    driver: bridge
+#    ipam:
+#      driver: default
+#      config:
+#        - { subnet: "192.200.99.0/24", gateway: "192.200.99.1" }

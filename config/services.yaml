@@ -1,0 +1,64 @@
+parameters:
+    app.data_file_path: '%kernel.project_dir%/%env(string:VACANCIES_FILE_PATH)%'
+    container.dumper.inline_factories: true
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Kernel.php'
+            - '../src/Tests/'
+
+    App\Controller\:
+        resource: '../src/Controller/'
+        tags: [ 'controller.service_arguments' ]
+
+    Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer:
+        public: false
+        tags: [ 'serializer.normalizer' ]
+
+    app.cache.file_source:
+        class: 'Symfony\Component\Cache\Adapter\PhpFilesAdapter'
+        arguments: [ '', 0, '%kernel.cache_dir%/file_source.cache' ]
+
+    app.data_source.vacancies:
+        class: 'App\Service\DataSource\CsvFileSource'
+        arguments:
+            - '%app.data_file_path%'
+
+    App\Repository\VacancyRepository:
+        arguments: [ '@app.data_source.vacancies' ]
+
+    App\Cache\VacanciesSourceWarmer:
+        arguments: [ '@app.data_source.vacancies' ]
+        tags: [ 'kernel.cache_warmer' ]
+
+    App\EventListener\ResponseListener:
+        arguments:
+            $env: '%env(APP_ENV)%'
+        tags:
+            - { name: 'kernel.event_listener', event: 'kernel.exception' }
+            - { name: 'kernel.event_listener', event: 'kernel.view' }
+
+    App\Monolog\Processor\TraceProcessor:
+        arguments:
+            $requestStack: "@request_stack"
+            $traceId: '%env(string:SERVICE_TRACE_ID)%'
+            $traceLogId: '%env(string:SERVICE_LOG_TRACE_ID)%'
+            $parentId: '%env(string:SERVICE_PARENT_ID)%'
+            $parentLogId: '%env(string:SERVICE_LOG_PARENT_ID)%'
+        tags:
+            - { name: 'monolog.processor', method: 'processRecord' }
+
+    App\Check\CsvFileCheck:
+        autoconfigure: false
+        arguments: [ "%app.data_file_path%" ]
+        calls:
+            - setLabel: [ "File (CSV)" ]
+        tags:
+            - { name: 'liip_monitor.check', alias: 'file_csv' }
