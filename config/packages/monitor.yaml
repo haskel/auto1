@@ -1,0 +1,9 @@
+liip_monitor:
+    enable_controller: true
+    checks:
+        groups:
+            default:
+                php_version:
+                    '7.4': '>='
+                readable_directory:   ["%kernel.cache_dir%"]
+                writable_directory:   ["%kernel.cache_dir%"]
